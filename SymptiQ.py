@@ -262,7 +262,7 @@ class SymptiQApp(ctk.CTk):
         page = ctk.CTkFrame(self.content_area, fg_color="transparent")
         self.pages['dashboard'] = page
         
-        greet = ctk.CTkLabel(page, text="Good Morning, User", font=ctk.CTkFont(size=32, weight="bold"), text_color=TEXT_MAIN)
+        greet = ctk.CTkLabel(page, text="Welcome, User", font=ctk.CTkFont(size=32, weight="bold"), text_color=TEXT_MAIN)
         greet.pack(anchor="w", pady=(0, 5))
         
         sub_greet = ctk.CTkLabel(page, text="Here is your health overview for today.", font=ctk.CTkFont(size=16), text_color=TEXT_SUB, wraplength=100)
