@@ -12,7 +12,6 @@ import numpy as np
 ctk.set_appearance_mode("System")  
 ctk.set_default_color_theme("blue")  
 
-# Premium Healthcare Palette
 BRAND_PRIMARY = "#0B2447"      # Deep Navy for Sidebar
 BRAND_ACCENT = "#19A7CE"       # Bright Teal/Blue for CTA Buttons
 BRAND_SUCCESS = "#10B981"      # Emerald Green for Routing/Success
@@ -71,7 +70,6 @@ class SymptiQApp(ctk.CTk):
         self.build_login_screen()
         self.build_main_application()
 
-        # Listen to the MAIN window resizing only
         self.bind("<Configure>", self.on_window_resize)
 
         self.app_container.grid_remove()
@@ -102,27 +100,36 @@ class SymptiQApp(ctk.CTk):
         except Exception as e:
             print(f"System Error (AI Engine): {e}")
 
-    # ==========================================
-    # ABSOLUTE RESPONSIVENESS SYSTEM (Bug Fix)
-    # ==========================================
     def on_window_resize(self, event):
         if event.widget == self:
-            self.update_all_wraplengths()
+            if hasattr(self, '_resize_timer'):
+                self.after_cancel(self._resize_timer)
+            self._resize_timer = self.after(50, self.update_all_wraplengths)
 
     def update_all_wraplengths(self):
-        app_width = self.winfo_width()
+        try:
+            scale = ctk.ScalingTracker.get_widget_scaling(self)
+        except Exception:
+            scale = 1.0
+            
+        logical_width = self.winfo_width() / scale
+        
         alive_labels = []
         for lbl, offset in self.responsive_labels:
             if lbl.winfo_exists():
-                lbl.configure(wraplength=max(200, app_width - offset))
+                safe_wrap = max(200, logical_width - offset)
+                
+                lbl.configure(wraplength=safe_wrap, justify="left", anchor="w")
                 alive_labels.append((lbl, offset))
+                
         self.responsive_labels = alive_labels
 
     def register_responsive_label(self, label_widget, offset=480):
         self.responsive_labels.append((label_widget, offset))
-        app_width = self.winfo_width()
-        if app_width > 100:
-            label_widget.configure(wraplength=max(200, app_width - offset))
+        
+        if hasattr(self, '_init_wrap_timer'):
+            self.after_cancel(self._init_wrap_timer)
+        self._init_wrap_timer = self.after(100, self.update_all_wraplengths)
 
     # ==========================================
     # SCREEN 1: THE LOGIN PORTAL
@@ -167,6 +174,7 @@ class SymptiQApp(ctk.CTk):
         self.login_container.grid_remove()
         self.app_container.grid(row=0, column=0, sticky="nsew")
         self.navigate_to("dashboard")
+        self.after(100, self.update_all_wraplengths)
 
     # ==========================================
     # SCREEN 2: MAIN DASHBOARD & ROUTING
@@ -248,6 +256,7 @@ class SymptiQApp(ctk.CTk):
             self.pages[page_name].grid(row=0, column=0, sticky="nsew")
 
         self.update_all_wraplengths()
+        self.after(50, self.update_all_wraplengths)
 
     def logout(self):
         self.app_container.grid_remove()
